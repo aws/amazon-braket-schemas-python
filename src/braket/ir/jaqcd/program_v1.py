@@ -22,6 +22,8 @@ from braket.ir.jaqcd.instructions import (
     XY,
     YY,
     ZZ,
+    AmplitudeDamping,
+    BitFlip,
     CCNot,
     CNot,
     CPhaseShift,
@@ -29,9 +31,13 @@ from braket.ir.jaqcd.instructions import (
     CPhaseShift01,
     CPhaseShift10,
     CSwap,
+    Depolarizing,
     H,
     I,
     ISwap,
+    Kraus,
+    PhaseDamping,
+    PhaseFlip,
     PhaseShift,
     PSwap,
     Rx,
@@ -51,6 +57,7 @@ from braket.ir.jaqcd.instructions import (
 )
 from braket.ir.jaqcd.results import (
     Amplitude,
+    DensityMatrix,
     Expectation,
     Probability,
     Sample,
@@ -94,7 +101,16 @@ GateInstructions = Union[
     ZZ,
 ]
 
-Results = Union[Amplitude, Expectation, Probability, Sample, StateVector, Variance]
+NoiseInstructions = Union[
+    BitFlip,
+    PhaseFlip,
+    Depolarizing,
+    AmplitudeDamping,
+    PhaseDamping,
+    Kraus,
+]
+
+Results = Union[Amplitude, Expectation, Probability, Sample, StateVector, DensityMatrix, Variance]
 
 
 class Program(BraketSchemaBase):
@@ -106,9 +122,9 @@ class Program(BraketSchemaBase):
     Attributes:
         braketSchemaHeader (BraketSchemaHeader): Schema header. Users do not need
             to set this value. Only default is allowed.
-        instructions (List[GateInstructions]): List of instructions.
-        basis_rotation_instructions (List[GateInstructions]): List of instructions for
-            rotation to desired measurement bases. Default is None.
+        instructions (List[Union[GateInstructions, NoiseInstructions]]): List of instructions.
+        basis_rotation_instructions (List[GateInstructions]): List of
+            instructions for rotation to desired measurement bases. Default is None.
         results (List[Union[Amplitude, Expectation, Probability, Sample, StateVector, Variance]]):
             List of requested results. Default is None.
 
@@ -153,10 +169,18 @@ class Program(BraketSchemaBase):
         YY,
         Z,
         ZZ
+
+        The type `NoiseInstructions` includes the following instructions:
+        BitFlip,
+        PhaseDamping
+        PhaseFlip,
+        Depolarizing,
+        AmplitudeDamping,
+        Kraus,
     """
 
     _PROGRAM_HEADER = BraketSchemaHeader(name="braket.ir.jaqcd.program", version="1")
     braketSchemaHeader: BraketSchemaHeader = Field(default=_PROGRAM_HEADER, const=_PROGRAM_HEADER)
-    instructions: List[GateInstructions]
+    instructions: List[Union[GateInstructions, NoiseInstructions]]
     results: Optional[List[Results]]
     basis_rotation_instructions: Optional[List[GateInstructions]]
